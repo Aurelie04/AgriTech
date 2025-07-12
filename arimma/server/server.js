@@ -1,3 +1,4 @@
+// ✅ Updated server.js (Express Backend)
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
@@ -12,31 +13,39 @@ const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: '',
-  database: 'agritech'
+  database: 'agritechdb'
 });
 
-// Register
+// ✅ Register Endpoint (with full fields and bcrypt)
 app.post('/api/register', async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, phone, address, business, role } = req.body;
 
-  // Check if user already exists
-  db.query('SELECT * FROM farmers WHERE email = ?', [email], async (err, results) => {
-    if (results.length > 0) {
-      return res.status(409).json({ message: 'Email already registered' });
+  if (!name || !email || !password) {
+    return res.status(400).json({ message: 'Name, email, and password are required.' });
+  }
+
+  try {
+    const [existing] = await db.promise().query('SELECT * FROM farmers WHERE email = ?', [email]);
+    if (existing.length > 0) {
+      return res.status(400).json({ message: 'Email already registered.' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    db.query('INSERT INTO farmers (name, email, password) VALUES (?, ?, ?)',
-      [name, email, hashedPassword],
-      (err, result) => {
-        if (err) return res.status(500).json({ error: 'Database error' });
-        res.status(201).json({ message: 'User registered successfully' });
-      }
+
+    await db.promise().query(
+      `INSERT INTO farmers (name, email, password, phone, address, business, role, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+      [name, email, hashedPassword, phone || '', address || '', business || '', role || 'farmer']
     );
-  });
+
+    res.json({ message: 'Farmer registered successfully.' });
+  } catch (err) {
+    console.error('Registration error:', err);
+    res.status(500).json({ message: 'Server error during registration.' });
+  }
 });
 
-// Login
+// ✅ Login Endpoint
 app.post('/api/login', (req, res) => {
   const { email, password } = req.body;
 
@@ -48,10 +57,9 @@ app.post('/api/login', (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).json({ message: 'Invalid email or password' });
 
-    // Generate token (optional)
     const token = jwt.sign({ id: user.id, email: user.email }, 'secretkey', { expiresIn: '1h' });
 
-    res.json({,
+    res.json({
       message: 'Login successful',
       token,
       user: { id: user.id, name: user.name, email: user.email }
