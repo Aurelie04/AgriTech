@@ -68,3 +68,17 @@ app.post('/api/login', (req, res) => {
 });
 
 app.listen(8081, () => console.log('Server running on port 8081'));
+
+//Additional Route for Yield Optimization (Mock Data)
+app.get('/api/yield/tomatoes', (req, res) => {
+  // Mocked tomato yield data
+  const yieldData = [
+    { month: 'Jan', harvest: 120, revenue: 1000 },
+    { month: 'Feb', harvest: 150, revenue: 1300 },
+    { month: 'Mar', harvest: 200, revenue: 1700 },
+    { month: 'Apr', harvest: 250, revenue: 2100 },
+    { month: 'May', harvest: 300, revenue: 2600 },
+  ];
+
+  res.json({ title: 'Top Best-seller product', crop: 'Tomatoes', yieldData });
+});
