@@ -7,10 +7,12 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer'); 
 const emailjs = require('@emailjs/nodejs');
 const { v4: uuidv4 } = require('uuid');
+const bodyParser = require('body-parser');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(bodyParser.json());
 
 const db = mysql.createConnection({
   host: 'localhost',
@@ -174,6 +176,23 @@ app.put('/api/farmer/:id', (req, res) => {
   );
 });
 
+// ✅ Route: Submit insurance request
+app.post('/api/insurance/apply', (req, res) => {
+  const { fullName, type, bundle, description } = req.body;
+
+  const sql = `
+    INSERT INTO insurance_requests (full_name, insurance_type, bundle, description)
+    VALUES (?, ?, ?, ?)
+  `;
+
+  db.query(sql, [fullName, type, bundle, description], (err, result) => {
+    if (err) {
+      console.error('Database insert error:', err);
+      return res.status(500).json({ message: 'Internal server error' });
+    }
+    res.status(200).json({ message: 'Insurance request submitted successfully' });
+  });
+});
 
 app.listen(8081, () => {
   console.log('Server running on port 8081');
