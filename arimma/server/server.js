@@ -226,6 +226,24 @@ app.get('/api/digital-market', (req, res) => {
   });
 });
 
+app.post('/api/solar/apply', (req, res) => {
+  const {
+    name, email, phone, property_type,
+    location, package_type, finance_model, monthly_income
+  } = req.body;
+
+  const sql = `INSERT INTO solar_finance_applications
+    (name, email, phone, property_type, location, package_type, finance_model, monthly_income)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+
+  db.query(sql, [name, email, phone, property_type, location, package_type, finance_model, monthly_income],
+    (err, result) => {
+      if (err) return res.status(500).json({ message: "Server error" });
+      res.json({ success: true, message: "Application submitted" });
+    });
+});
+
+
 // Start server
 app.listen(8081, () => {
   console.log('Server running on port 8081');
