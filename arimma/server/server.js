@@ -94,7 +94,6 @@ app.post('/api/forgot-password', (req, res) => {
   });
 });
 
-
 // Reset Password
 app.post('/api/reset-password/:token', async (req, res) => {
   const { token } = req.params;
@@ -139,7 +138,7 @@ app.get('/api/yield/tomatoes', (req, res) => {
   res.json({ title: 'Top Best-seller product', crop: 'Tomatoes', yieldData });
 });
 
-// API to handle booking submission
+// Equipment booking
 app.post('/api/equipment/request', (req, res) => {
   const { userId, equipment_name, purpose, date_from, date_to } = req.body;
   const sql = `INSERT INTO equipment_requests (user_id, equipment_name, purpose, date_from, date_to) VALUES (?, ?, ?, ?, ?)`;
@@ -152,7 +151,7 @@ app.post('/api/equipment/request', (req, res) => {
   });
 });
 
-// Get single farmer profile by ID
+// Get single farmer profile
 app.get('/api/farmer/:id', (req, res) => {
   const { id } = req.params;
   db.query('SELECT * FROM farmers WHERE id = ?', [id], (err, results) => {
@@ -162,7 +161,7 @@ app.get('/api/farmer/:id', (req, res) => {
   });
 });
 
-// Update farmer profile
+// Update profile
 app.put('/api/farmer/:id', (req, res) => {
   const { id } = req.params;
   const { name, phone, address, business } = req.body;
@@ -176,15 +175,13 @@ app.put('/api/farmer/:id', (req, res) => {
   );
 });
 
-// ✅ Route: Submit insurance request
+// Insurance Request
 app.post('/api/insurance/apply', (req, res) => {
   const { fullName, type, bundle, description } = req.body;
-
   const sql = `
     INSERT INTO insurance_requests (full_name, insurance_type, bundle, description)
     VALUES (?, ?, ?, ?)
   `;
-
   db.query(sql, [fullName, type, bundle, description], (err, result) => {
     if (err) {
       console.error('Database insert error:', err);
@@ -194,8 +191,42 @@ app.post('/api/insurance/apply', (req, res) => {
   });
 });
 
+// General Market Listings
+app.get('/api/market', (req, res) => {
+  const sql = 'SELECT * FROM market_listings';
+  db.query(sql, (err, results) => {
+    if (err) return res.status(500).json(err);
+    res.json(results);
+  });
+});
+
+// ✅ Fixed Digital Market POST Route
+app.post('/api/digital-market', (req, res) => {
+  const { user_id, product_name, quantity, price, buyer_type, verified, contract_link } = req.body;
+  const sql = `
+    INSERT INTO digital_market_listings 
+    (user_id, product_name, quantity, price, buyer_type, verified, contract_link) 
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `;
+  db.query(sql, [user_id, product_name, quantity, price, buyer_type, verified, contract_link], (err, result) => {
+    if (err) return res.status(500).json({ error: err });
+    res.json({ message: 'Product listed in the Digital Market!' });
+  });
+});
+
+// ✅ Get Digital Market Listings
+app.get('/api/digital-market', (req, res) => {
+  const sql = 'SELECT * FROM digital_market_listings';
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('Error fetching digital market listings:', err);
+      return res.status(500).json({ error: 'Failed to fetch listings' });
+    }
+    res.json(results);
+  });
+});
+
+// Start server
 app.listen(8081, () => {
   console.log('Server running on port 8081');
 });
-
-app.listen(8081, () => console.log('Server running on port 8081'));
