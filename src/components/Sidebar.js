@@ -11,9 +11,8 @@ export default function Sidebar() {
       </button>
       {open && (
         <div className="absolute top-16 left-0 w-full bg-white shadow-lg z-20 flex flex-col items-start p-4 space-y-4">
-          <Link to="/" onClick={() => setOpen(false)}>Home</Link>
-          <Link to="/about" onClick={() => setOpen(false)}>About</Link>
-          <Link to="/contact" onClick={() => setOpen(false)}>Contact Us</Link>
+          <Link to="/dashboard" onClick={() => setOpen(false)}>Home</Link>
+          <Link to="/profile" onClick={() => setOpen(false)}>Profile</Link>
           <Link to="/signup" onClick={() => setOpen(false)}>Signup</Link>
           <Link to="/login" onClick={() => setOpen(false)}>Login</Link>
         </div>

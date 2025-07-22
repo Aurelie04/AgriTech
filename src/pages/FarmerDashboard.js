@@ -1,10 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import {
-  ShoppingCart, Truck, Leaf, User,
-  Facebook, Instagram, Linkedin, Twitter,
-  Smartphone, Download
+  ShoppingCart,
+  Truck,
+  Facebook,
+  Instagram,
+  Linkedin,
+  Twitter,
+  Apple,
+  Wrench,
+  Sun,
 } from 'lucide-react';
-
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend, ResponsiveContainer,
   BarChart, Bar
@@ -13,6 +19,21 @@ import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 
 function FarmerDashboard() {
+  const navigate = useNavigate();
+  const [userName, setUserName] = useState('');
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        setUserName(parsed.name || '');
+      } catch (err) {
+        console.error('Failed to parse user:', err);
+      }
+    }
+  }, []);
+
   const [yieldData] = useState([
     { month: 'Jan', cropProduction: 1200, harvest: 950, revenue: 24000 },
     { month: 'Feb', cropProduction: 1350, harvest: 1000, revenue: 28000 },
@@ -21,8 +42,8 @@ function FarmerDashboard() {
     { month: 'May', cropProduction: 1700, harvest: 1300, revenue: 37000 },
     { month: 'Jun', cropProduction: 1800, harvest: 1450, revenue: 40000 },
   ]);
-  const exchangeRate = 17.95;
 
+  const exchangeRate = 17.95;
   const formatZAR = (value) =>
     new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(value);
 
@@ -53,9 +74,10 @@ function FarmerDashboard() {
       <Topbar />
       <div className="pt-24 px-4 md:px-8 space-y-10">
         <Sidebar />
-        <h1 className="text-2xl md:text-3xl font-bold text-center mb-2">Welcome back, Farmer 👨‍🌾</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-center mb-2">
+          {userName ? `Good day, ${userName} 👋` : 'Welcome back, Farmer 👨‍🌾'}
+        </h1>
 
-        {/* Row 1: Line Chart + Weather */}
         <div className="flex flex-col lg:flex-row justify-center gap-6 items-start">
           <div className="bg-white rounded-lg shadow p-4 md:p-6 w-full max-w-3xl">
             <h2 className="text-xl font-semibold mb-3 text-center">Tomato Crop Production & Revenue</h2>
@@ -87,7 +109,6 @@ function FarmerDashboard() {
           </div>
         </div>
 
-        {/* Row 2: Bar Chart + Exchange Table */}
         <div className="flex flex-col lg:flex-row justify-center gap-6 items-start">
           <div className="bg-white rounded-lg shadow p-4 md:p-6 w-full max-w-3xl">
             <h2 className="text-xl font-bold mb-4 text-center">Tomato: Crop Production vs Harvest</h2>
@@ -127,28 +148,76 @@ function FarmerDashboard() {
           </div>
         </div>
 
-        {/* Row 3: Feature Cards */}
+        <h2 className="text-4xl font-bold text-center mt-8">Facilities</h2>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 justify-items-center">
-          <div className="bg-green-100 text-green-800 rounded-lg shadow p-4 w-full text-center">
+          <div
+            onClick={() => navigate('/digital-marketplace')}
+            className="cursor-pointer bg-green-100 text-green-800 rounded-lg shadow p-4 w-full text-center hover:bg-green-200 transition"
+          >
             <ShoppingCart className="mx-auto mb-2" size={32} />
-            <h3 className="font-bold text-lg">Online Market</h3>
+            <h3 className="font-bold text-lg">Digital Marketplace</h3>
           </div>
-          <div className="bg-blue-100 text-blue-800 rounded-lg shadow p-4 w-full text-center">
+
+          <div
+            onClick={() => navigate('/transport-logistic')}
+            className="cursor-pointer bg-blue-100 text-blue-800 rounded-lg shadow p-4 w-full text-center hover:bg-blue-200 transition"
+          >
             <Truck className="mx-auto mb-2" size={32} />
             <h3 className="font-bold text-lg">Transport Logistic</h3>
           </div>
-          <div className="bg-yellow-100 text-yellow-800 rounded-lg shadow p-4 w-full text-center">
-            <Leaf className="mx-auto mb-2" size={32} />
-            <h3 className="font-bold text-lg">Crop Production</h3>
+
+          <Link
+            to="/agriculture-insurance"
+            className="cursor-pointer bg-red-100 text-red-800 rounded-lg shadow p-4 w-full text-center hover:bg-red-200 transition"
+          >
+            <div className="text-2xl mb-2">❤️</div>
+            <h3 className="font-bold text-lg">Agriculture Insurance</h3>
+          </Link>
+
+          <div
+            onClick={() => navigate('/equipment')}
+            className="cursor-pointer bg-purple-100 text-purple-800 rounded-lg shadow p-4 w-full text-center hover:bg-purple-200 transition"
+          >
+            <Wrench className="mx-auto mb-2" size={32} />
+            <h3 className="font-bold text-lg">Equipment Sharing & Mechanisation</h3>
           </div>
-          <div className="bg-purple-100 text-purple-800 rounded-lg shadow p-4 w-full text-center">
-            <User className="mx-auto mb-2" size={32} />
-            <h3 className="font-bold text-lg">Farm Workers</h3>
+
+          <div
+            onClick={() => navigate('/solar-finance')}
+            className="cursor-pointer bg-yellow-100 text-yellow-800 rounded-lg shadow p-4 w-full text-center hover:bg-yellow-200 transition"
+          >
+            <Sun className="mx-auto mb-2" size={32} />
+            <h3 className="font-bold text-lg">Solar Finances</h3>
+          </div>
+
+          {/* New Cards */}
+          <div
+            onClick={() => navigate('/smart-farming-tools')}
+            className="cursor-pointer bg-emerald-100 text-emerald-800 rounded-lg shadow p-4 w-full text-center hover:bg-emerald-200 transition"
+          >
+            <div className="text-2xl mb-2">🧠</div>
+            <h3 className="font-bold text-lg">Smart Farming Tools</h3>
+          </div>
+
+          <div
+            onClick={() => navigate('/agri-banking')}
+            className="cursor-pointer bg-indigo-100 text-indigo-800 rounded-lg shadow p-4 w-full text-center hover:bg-indigo-200 transition"
+          >
+            <div className="text-2xl mb-2">🏦</div>
+            <h3 className="font-bold text-lg">Agri-Banking</h3>
+          </div>
+
+          <div
+            onClick={() => navigate('/agricultural-finance')}
+            className="cursor-pointer bg-amber-100 text-amber-800 rounded-lg shadow p-4 w-full text-center hover:bg-amber-200 transition"
+          >
+            <div className="text-2xl mb-2">💰</div>
+            <h3 className="font-bold text-lg">Agricultural Finance</h3>
           </div>
         </div>
       </div>
 
-      {/* Footer */}
       <footer className="bg-green-900 text-white py-10 mt-20 px-4">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between gap-8">
           <div>
@@ -169,12 +238,12 @@ function FarmerDashboard() {
           <div>
             <h3 className="font-semibold mb-2">Download App</h3>
             <div className="flex flex-col gap-2">
-             <button className="bg-black text-white px-4 py-2 rounded flex items-center gap-2">
-                  <Smartphone size={18} /> iOS App
-             </button>
-            <button className="bg-black text-white px-4 py-2 rounded flex items-center gap-2">
-                 <Download size={18} /> Android App
-            </button>
+              <button className="bg-black text-white px-4 py-2 rounded flex items-center gap-2">
+                <Apple size={18} /> iOS App
+              </button>
+              <button className="bg-black text-white px-4 py-2 rounded flex items-center gap-2">
+                📱 Android App
+              </button>
             </div>
           </div>
         </div>
