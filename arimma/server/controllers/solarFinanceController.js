@@ -1,7 +1,7 @@
-const db = require('../db'); // Make sure this points to your DB connection module
+const db = require('../db');
 
-// Handle solar finance application submission
-exports.submitApplication = (req, res) => {
+// Create a new solar finance application
+exports.createApplication = (req, res) => {
   const {
     name,
     email,
@@ -10,40 +10,42 @@ exports.submitApplication = (req, res) => {
     customerType,
     systemSize,
     financingOption,
-    message,
+    message
   } = req.body;
 
-  // Basic validation
-  if (!name || !email || !phone || !address) {
-    return res.status(400).json({ error: 'Please fill all required fields' });
-  }
+  const sql = `INSERT INTO solar_finance_applications 
+    (name, phone, email, address, customerType, systemSize, financingOption, message) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
 
-  const query = `
-    INSERT INTO solar_finance_applications
-    (name, email, phone, address, customer_type, system_size, financing_option, message)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `;
+  db.query(sql, [name, phone, email, address, customerType, systemSize, financingOption, message], (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.status(201).json({ message: 'Application submitted successfully' });
+  });
+};
 
-  const values = [
-    name,
-    email,
-    phone,
-    address,
-    customerType || '',
-    systemSize || '',
-    financingOption || '',
-    message || '',
-  ];
+// Get all solar finance applications
+exports.getAllApplications = (req, res) => {
+  db.query('SELECT * FROM solar_finance_applications', (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.status(200).json(results);
+  });
+};
 
-  db.run(query, values, function (err) {
-    if (err) {
-      console.error('Error inserting application:', err.message);
-      return res.status(500).json({ error: 'An error occurred while saving the application.' });
-    }
+// Get a specific application by ID
+exports.getApplicationById = (req, res) => {
+  const { id } = req.params;
+  db.query('SELECT * FROM solar_finance_applications WHERE id = ?', [id], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (results.length === 0) return res.status(404).json({ message: 'Application not found' });
+    res.status(200).json(results[0]);
+  });
+};
 
-    return res.status(200).json({
-      message: 'Application submitted successfully.',
-      applicationId: this.lastID
-    });
+// Delete an application by ID
+exports.deleteApplication = (req, res) => {
+  const { id } = req.params;
+  db.query('DELETE FROM solar_finance_applications WHERE id = ?', [id], (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.status(200).json({ message: 'Application deleted successfully' });
   });
 };
