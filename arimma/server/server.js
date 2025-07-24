@@ -19,6 +19,11 @@ const db = mysql.createConnection({
   database: 'agritechdb'
 });
 
+//Agri-Banking
+const agriBankingRoutes = require('./routes/agriBanking');
+app.use('/api/agri-banking', agriBankingRoutes);
+
+
 // Controller route for solar finance
 const solarFinanceRoutes = require('./routes/solarFinanceRoutes');
 app.use('/api/solar-finance', solarFinanceRoutes); // Correct route prefix
