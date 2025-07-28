@@ -5,13 +5,30 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const bodyParser = require('body-parser');
+const session = require('express-session'); // <-- Added for session handling
 
 const app = express();
-app.use(cors());
+
+// ---------- MIDDLEWARE ----------
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true, // Enable cookie sharing with frontend
+}));
 app.use(express.json());
 app.use(bodyParser.json());
 
-// DB connection
+app.use(session({
+  secret: 'your-secret-key', // Change this in production
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: false, // set to true if using HTTPS
+    httpOnly: true,
+    maxAge: 1000 * 60 * 60, // 1 hour
+  },
+}));
+
+// ---------- DB ----------
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
@@ -19,18 +36,22 @@ const db = mysql.createConnection({
   database: 'agritechdb'
 });
 
-//Agri-Banking
+// ---------- ROUTES ----------
 const agriBankingRoutes = require('./routes/agriBanking');
 app.use('/api/agri-banking', agriBankingRoutes);
 
-
-// Controller route for solar finance
 const solarFinanceRoutes = require('./routes/solarFinanceRoutes');
-app.use('/api/solar-finance', solarFinanceRoutes); // Correct route prefix
+app.use('/api/solar-finance', solarFinanceRoutes);
 
-// ---------------- Existing Endpoints ------------------
+// ---------- SESSION-BASED AUTH ----------
+const requireLogin = (req, res, next) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+  next();
+};
 
-// Register
+// ---------- AUTH ----------
 app.post('/api/register', async (req, res) => {
   const { name, email, password, phone, address, business, role } = req.body;
   if (!name || !email || !password) {
@@ -57,29 +78,44 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
-// Login
 app.post('/api/login', (req, res) => {
   const { email, password } = req.body;
+  const sql = 'SELECT * FROM farmers WHERE email = ?';
 
-  db.query('SELECT * FROM farmers WHERE email = ?', [email], async (err, results) => {
+  db.query(sql, [email], async (err, data) => {
     if (err) return res.status(500).json({ error: 'Database error' });
-    if (results.length === 0) return res.status(401).json({ message: 'Invalid email or password' });
+    if (data.length === 0) return res.status(404).json({ error: 'User not found' });
 
-    const user = results[0];
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.status(401).json({ message: 'Invalid email or password' });
+    const user = data[0];
+    const passwordMatch = await bcrypt.compare(password, user.password);
 
-    const token = jwt.sign({ id: user.id, email: user.email }, 'secretkey', { expiresIn: '1h' });
+    if (!passwordMatch) return res.status(401).json({ error: 'Invalid credentials' });
 
+    // ✅ Set session
+    req.session.userId = user.id;
+
+    // ✅ Log the session ID for debugging
+    console.log('Session ID on login:', req.sessionID);  // <--- Add this line here
+
+    // ✅ Respond to frontend
     res.json({
       message: 'Login successful',
-      token,
+      sessionId: req.sessionID,
       user: { id: user.id, name: user.name, email: user.email }
     });
   });
 });
 
-// Forgot Password
+
+app.post('/api/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) return res.status(500).json({ message: 'Logout failed' });
+    res.clearCookie('connect.sid');
+    res.json({ message: 'Logged out successfully' });
+  });
+});
+
+// ---------- PASSWORD MANAGEMENT ----------
 app.post('/api/forgot-password', (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ message: 'Email is required' });
@@ -98,7 +134,6 @@ app.post('/api/forgot-password', (req, res) => {
   });
 });
 
-// Reset Password
 app.post('/api/reset-password/:token', async (req, res) => {
   const { token } = req.params;
   const { newPassword } = req.body;
@@ -129,7 +164,7 @@ app.post('/api/reset-password/:token', async (req, res) => {
   }
 });
 
-// Yield Data
+// ---------- OTHER ROUTES (NO CHANGES, SESSION-COMPATIBLE) ----------
 app.get('/api/yield/tomatoes', (req, res) => {
   const yieldData = [
     { month: 'Jan', harvest: 120, revenue: 1000 },
@@ -141,7 +176,6 @@ app.get('/api/yield/tomatoes', (req, res) => {
   res.json({ title: 'Top Best-seller product', crop: 'Tomatoes', yieldData });
 });
 
-// Equipment booking
 app.post('/api/equipment/request', (req, res) => {
   const { userId, equipment_name, purpose, date_from, date_to } = req.body;
   const sql = `INSERT INTO equipment_requests (user_id, equipment_name, purpose, date_from, date_to) VALUES (?, ?, ?, ?, ?)`;
@@ -151,7 +185,6 @@ app.post('/api/equipment/request', (req, res) => {
   });
 });
 
-// Farmer profile
 app.get('/api/farmer/:id', (req, res) => {
   const { id } = req.params;
   db.query('SELECT * FROM farmers WHERE id = ?', [id], (err, results) => {
@@ -161,7 +194,6 @@ app.get('/api/farmer/:id', (req, res) => {
   });
 });
 
-// Update profile
 app.put('/api/farmer/:id', (req, res) => {
   const { id } = req.params;
   const { name, phone, address, business } = req.body;
@@ -175,7 +207,6 @@ app.put('/api/farmer/:id', (req, res) => {
   );
 });
 
-// Insurance Request
 app.post('/api/insurance/apply', (req, res) => {
   const { fullName, type, bundle, description } = req.body;
   const sql = `INSERT INTO insurance_requests (full_name, insurance_type, bundle, description) VALUES (?, ?, ?, ?)`;
@@ -185,7 +216,6 @@ app.post('/api/insurance/apply', (req, res) => {
   });
 });
 
-// General Market Listings
 app.get('/api/market', (req, res) => {
   db.query('SELECT * FROM market_listings', (err, results) => {
     if (err) return res.status(500).json(err);
@@ -193,21 +223,18 @@ app.get('/api/market', (req, res) => {
   });
 });
 
-// Digital Market Listing
 app.post('/api/digital-market', (req, res) => {
   const { user_id, product_name, quantity, price, buyer_type, verified, contract_link } = req.body;
   const sql = `
     INSERT INTO digital_market_listings 
     (user_id, product_name, quantity, price, buyer_type, verified, contract_link) 
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `;
+    VALUES (?, ?, ?, ?, ?, ?, ?)`;
   db.query(sql, [user_id, product_name, quantity, price, buyer_type, verified, contract_link], (err, result) => {
     if (err) return res.status(500).json({ error: err });
     res.json({ message: 'Product listed in the Digital Market!' });
   });
 });
 
-// Digital Market Fetch
 app.get('/api/digital-market', (req, res) => {
   db.query('SELECT * FROM digital_market_listings', (err, results) => {
     if (err) return res.status(500).json({ error: 'Failed to fetch listings' });
@@ -215,7 +242,6 @@ app.get('/api/digital-market', (req, res) => {
   });
 });
 
-// Existing solar apply route (can be phased out in favor of controller)
 app.post('/api/solar/apply', (req, res) => {
   const {
     name, email, phone, property_type,
@@ -233,7 +259,7 @@ app.post('/api/solar/apply', (req, res) => {
     });
 });
 
-// Server Start
+// ---------- START ----------
 app.listen(8081, () => {
   console.log('Server running on port 8081');
 });
