@@ -1,4 +1,3 @@
-// src/components/Login.js
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -14,14 +13,15 @@ function Login() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
+        credentials: 'include',
       });
 
       const data = await res.json();
 
-      if (res.ok) {
-        localStorage.setItem('user', JSON.stringify(data.user));
+      if (res.ok && data.user) {
+        localStorage.setItem('userData', JSON.stringify(data.user)); // ✅ Fixed key
         alert('Login successful!');
-        navigate('/dashboard'); // redirect after login
+        navigate('/dashboard');
       } else {
         alert(data.message || 'Login failed. Please check your credentials.');
       }
@@ -44,14 +44,15 @@ function Login() {
           placeholder="Email"
           required
           className="w-full px-3 py-2 border rounded"
+          value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
         />
-
         <input
           type="password"
           placeholder="Password"
           required
           className="w-full px-3 py-2 border rounded"
+          value={form.password}
           onChange={(e) => setForm({ ...form, password: e.target.value })}
         />
 
@@ -67,7 +68,6 @@ function Login() {
             Forgot password?
           </Link>
         </div>
-
         <div className="text-sm text-center">
           Don't have an account?{' '}
           <Link to="/signup" className="text-blue-600 hover:underline">

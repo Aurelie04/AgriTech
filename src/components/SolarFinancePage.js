@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Topbar from '../components/Topbar';
+import Sidebar from '../components/Sidebar';
 
 function SolarFinancePage() {
   const [form, setForm] = useState({
@@ -43,123 +45,134 @@ function SolarFinancePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-3xl mx-auto bg-white shadow p-6 rounded-lg">
-        <h1 className="text-2xl font-bold text-green-700 mb-4">Solar Finance Program</h1>
+    <div className="bg-gray-100 min-h-screen flex flex-col text-sm md:text-base">
+      {/* Topbar */}
+      <Topbar />
 
-        <p className="mb-4 text-gray-700">
-          Arimma Energy offers flexible solar financing solutions designed to power homes and businesses with clean, affordable energy. Install solar systems with zero upfront costs and repay affordably over time.
-        </p>
+      <div className="pt-24 px-4 md:px-8 flex">
+        {/* Sidebar */}
+        <div className="hidden md:block w-64">
+          <Sidebar />
+        </div>
 
-        <ul className="list-disc pl-5 mb-6 text-gray-700">
-          <li><strong>Homeowners:</strong> Reduce bills with tailored solar packages and low monthly repayments.</li>
-          <li><strong>Businesses:</strong> Cut costs with scalable solar systems and asset-backed finance.</li>
-          <li><strong>Options:</strong> Choose pay-as-you-go or lease-to-own for wider access to clean energy.</li>
-        </ul>
+        {/* Form Section */}
+        <div className="flex-1 p-6 bg-white shadow-lg rounded-lg mx-auto w-full max-w-3xl">
+          <h1 className="text-2xl font-bold text-green-700 mb-4">Solar Finance Program</h1>
 
-        {submitted ? (
-          <div className="text-center text-green-700 font-semibold">
-            ✅ Your application was submitted successfully!
-            <br />
-            <button
-              className="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-              onClick={() => navigate('/dashboard')}
-            >
-              Back to Dashboard
-            </button>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <input
-              name="name"
-              type="text"
-              placeholder="Full Name"
-              required
-              value={form.name}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-            />
-            <input
-              name="email"
-              type="email"
-              placeholder="Email"
-              required
-              value={form.email}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-            />
-            <input
-              name="phone"
-              type="tel"
-              placeholder="Phone Number"
-              required
-              value={form.phone}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-            />
-            <input
-              name="address"
-              type="text"
-              placeholder="Address"
-              required
-              value={form.address}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-            />
+          <p className="mb-4 text-gray-700">
+            Arimma Energy offers flexible solar financing solutions designed to power homes and businesses with clean, affordable energy. Install solar systems with zero upfront costs and repay affordably over time.
+          </p>
 
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1">
-                <label className="block mb-1 text-sm text-gray-600">Customer Type</label>
-                <select
-                  name="customerType"
-                  value={form.customerType}
-                  onChange={handleChange}
-                  className="w-full border rounded px-3 py-2"
-                >
-                  <option value="homeowner">Homeowner</option>
-                  <option value="business">Business</option>
-                </select>
-              </div>
-              <div className="flex-1">
-                <label className="block mb-1 text-sm text-gray-600">Financing Option</label>
-                <select
-                  name="financingOption"
-                  value={form.financingOption}
-                  onChange={handleChange}
-                  className="w-full border rounded px-3 py-2"
-                >
-                  <option value="pay-as-you-go">Pay-as-you-go</option>
-                  <option value="lease-to-own">Lease-to-own</option>
-                </select>
-              </div>
+          <ul className="list-disc pl-5 mb-6 text-gray-700">
+            <li><strong>Homeowners:</strong> Reduce bills with tailored solar packages and low monthly repayments.</li>
+            <li><strong>Businesses:</strong> Cut costs with scalable solar systems and asset-backed finance.</li>
+            <li><strong>Options:</strong> Choose pay-as-you-go or lease-to-own for wider access to clean energy.</li>
+          </ul>
+
+          {submitted ? (
+            <div className="text-center text-green-700 font-semibold">
+              ✅ Your application was submitted successfully!
+              <br />
+              <button
+                className="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                onClick={() => navigate('/dashboard')}
+              >
+                Back to Dashboard
+              </button>
             </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <input
+                name="name"
+                type="text"
+                placeholder="Full Name"
+                required
+                value={form.name}
+                onChange={handleChange}
+                className="w-full border rounded px-3 py-2"
+              />
+              <input
+                name="email"
+                type="email"
+                placeholder="Email"
+                required
+                value={form.email}
+                onChange={handleChange}
+                className="w-full border rounded px-3 py-2"
+              />
+              <input
+                name="phone"
+                type="tel"
+                placeholder="Phone Number"
+                required
+                value={form.phone}
+                onChange={handleChange}
+                className="w-full border rounded px-3 py-2"
+              />
+              <input
+                name="address"
+                type="text"
+                placeholder="Address"
+                required
+                value={form.address}
+                onChange={handleChange}
+                className="w-full border rounded px-3 py-2"
+              />
 
-            <input
-              name="systemSize"
-              type="text"
-              placeholder="Preferred System Size (kW)"
-              value={form.systemSize}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-            />
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                  <label className="block mb-1 text-sm text-gray-600">Customer Type</label>
+                  <select
+                    name="customerType"
+                    value={form.customerType}
+                    onChange={handleChange}
+                    className="w-full border rounded px-3 py-2"
+                  >
+                    <option value="homeowner">Homeowner</option>
+                    <option value="business">Business</option>
+                  </select>
+                </div>
+                <div className="flex-1">
+                  <label className="block mb-1 text-sm text-gray-600">Financing Option</label>
+                  <select
+                    name="financingOption"
+                    value={form.financingOption}
+                    onChange={handleChange}
+                    className="w-full border rounded px-3 py-2"
+                  >
+                    <option value="pay-as-you-go">Pay-as-you-go</option>
+                    <option value="lease-to-own">Lease-to-own</option>
+                  </select>
+                </div>
+              </div>
 
-            <textarea
-              name="message"
-              placeholder="Additional notes (optional)"
-              value={form.message}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-              rows={3}
-            />
+              <input
+                name="systemSize"
+                type="text"
+                placeholder="Preferred System Size (kW)"
+                value={form.systemSize}
+                onChange={handleChange}
+                className="w-full border rounded px-3 py-2"
+              />
 
-            <button
-              type="submit"
-              className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
-            >
-              Apply for Solar Finance
-            </button>
-          </form>
-        )}
+              <textarea
+                name="message"
+                placeholder="Additional notes (optional)"
+                value={form.message}
+                onChange={handleChange}
+                className="w-full border rounded px-3 py-2"
+                rows={3}
+              />
+
+              <button
+                type="submit"
+                className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
+              >
+                Apply for Solar Finance
+              </button>
+            </form>
+          )}
+        </div>
       </div>
     </div>
   );

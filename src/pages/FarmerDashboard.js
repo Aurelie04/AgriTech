@@ -1,3 +1,4 @@
+// src/pages/FarmerDashboard.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
@@ -17,22 +18,30 @@ import {
 } from 'recharts';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
+import WeatherForecast from '../components/WeatherForecast';
 
 function FarmerDashboard() {
   const navigate = useNavigate();
   const [userName, setUserName] = useState('');
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        const parsed = JSON.parse(storedUser);
-        setUserName(parsed.name || '');
-      } catch (err) {
-        console.error('Failed to parse user:', err);
-      }
-    }
-  }, []);
+    const storedUser = localStorage.getItem('userData'); // ✅ fixed key
+
+  if (!storedUser) {
+    alert('Please log in to continue.');
+    navigate('/login');
+    return;
+  }
+
+  try {
+    const parsed = JSON.parse(storedUser);
+    setUserName(parsed.name || '');
+  } catch (err) {
+    console.error('Failed to parse userData:', err);
+    localStorage.removeItem('userData');
+    navigate('/login');
+  }
+  }, [navigate]);
 
   const [yieldData] = useState([
     { month: 'Jan', cropProduction: 1200, harvest: 950, revenue: 24000 },
@@ -61,14 +70,6 @@ function FarmerDashboard() {
     return null;
   };
 
-  const weatherData = [
-    { day: 'Mon', condition: '☀️ Sunny', temp: '28°C' },
-    { day: 'Tue', condition: '⛅ Cloudy', temp: '24°C' },
-    { day: 'Wed', condition: '🌧 Rainy', temp: '20°C' },
-    { day: 'Thu', condition: '☀️ Sunny', temp: '27°C' },
-    { day: 'Fri', condition: '🌤 Partly Cloudy', temp: '25°C' },
-  ];
-
   return (
     <div className="bg-gray-100 min-h-screen flex flex-col justify-between text-sm md:text-base">
       <Topbar />
@@ -80,7 +81,7 @@ function FarmerDashboard() {
 
         <div className="flex flex-col lg:flex-row justify-center gap-6 items-start">
           <div className="bg-white rounded-lg shadow p-4 md:p-6 w-full max-w-3xl">
-            <h2 className="text-xl font-semibold mb-3 text-center">Tomato Crop Production & Revenue</h2>
+            <h2 className="text-xl font-semibold mb-3 text-center">Crop Production vs Revenue</h2>
             <ResponsiveContainer width="100%" height={280}>
               <LineChart data={yieldData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -95,23 +96,12 @@ function FarmerDashboard() {
             </ResponsiveContainer>
           </div>
 
-          <div className="bg-white/60 backdrop-blur-md rounded-lg shadow p-6 w-full max-w-sm">
-            <h2 className="text-xl font-bold mb-4 text-center">📍 Pretoria Weather Forecast</h2>
-            <ul className="space-y-3">
-              {weatherData.map((day, index) => (
-                <li key={index} className="flex justify-between px-3 py-2 bg-white/30 rounded">
-                  <span className="font-semibold">{day.day}</span>
-                  <span>{day.condition}</span>
-                  <span className="font-medium">{day.temp}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <WeatherForecast />
         </div>
 
         <div className="flex flex-col lg:flex-row justify-center gap-6 items-start">
           <div className="bg-white rounded-lg shadow p-4 md:p-6 w-full max-w-3xl">
-            <h2 className="text-xl font-bold mb-4 text-center">Tomato: Crop Production vs Harvest</h2>
+            <h2 className="text-xl font-bold mb-4 text-center"> Crop Production vs Harvest</h2>
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={yieldData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -151,67 +141,43 @@ function FarmerDashboard() {
         <h2 className="text-4xl font-bold text-center mt-8">Facilities</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 justify-items-center">
-          <div
-            onClick={() => navigate('/digital-marketplace')}
-            className="cursor-pointer bg-green-100 text-green-800 rounded-lg shadow p-4 w-full text-center hover:bg-green-200 transition"
-          >
+          <div onClick={() => navigate('/digital-marketplace')} className="cursor-pointer bg-green-100 text-green-800 rounded-lg shadow p-4 w-full text-center hover:bg-green-200 transition">
             <ShoppingCart className="mx-auto mb-2" size={32} />
             <h3 className="font-bold text-lg">Digital Marketplace</h3>
           </div>
 
-          <div
-            onClick={() => navigate('/transport-logistic')}
-            className="cursor-pointer bg-blue-100 text-blue-800 rounded-lg shadow p-4 w-full text-center hover:bg-blue-200 transition"
-          >
+          <div onClick={() => navigate('/transport-logistic')} className="cursor-pointer bg-blue-100 text-blue-800 rounded-lg shadow p-4 w-full text-center hover:bg-blue-200 transition">
             <Truck className="mx-auto mb-2" size={32} />
             <h3 className="font-bold text-lg">Transport Logistic</h3>
           </div>
 
-          <Link
-            to="/agriculture-insurance"
-            className="cursor-pointer bg-red-100 text-red-800 rounded-lg shadow p-4 w-full text-center hover:bg-red-200 transition"
-          >
+          <Link to="/insurance/apply" className="cursor-pointer bg-red-100 text-red-800 rounded-lg shadow p-4 w-full text-center hover:bg-red-200 transition">
             <div className="text-2xl mb-2">❤️</div>
             <h3 className="font-bold text-lg">Agriculture Insurance</h3>
           </Link>
 
-          <div
-            onClick={() => navigate('/equipment')}
-            className="cursor-pointer bg-purple-100 text-purple-800 rounded-lg shadow p-4 w-full text-center hover:bg-purple-200 transition"
-          >
+          <div onClick={() => navigate('/equipment')} className="cursor-pointer bg-purple-100 text-purple-800 rounded-lg shadow p-4 w-full text-center hover:bg-purple-200 transition">
             <Wrench className="mx-auto mb-2" size={32} />
             <h3 className="font-bold text-lg">Equipment Sharing & Mechanisation</h3>
           </div>
 
-          <div
-            onClick={() => navigate('/solar-finance')}
-            className="cursor-pointer bg-yellow-100 text-yellow-800 rounded-lg shadow p-4 w-full text-center hover:bg-yellow-200 transition"
-          >
+          <div onClick={() => navigate('/solar-finance')} className="cursor-pointer bg-yellow-100 text-yellow-800 rounded-lg shadow p-4 w-full text-center hover:bg-yellow-200 transition">
             <Sun className="mx-auto mb-2" size={32} />
             <h3 className="font-bold text-lg">Solar Finances</h3>
           </div>
 
-          {/* New Cards */}
-          <div
-            onClick={() => navigate('/smart-farming-tools')}
-            className="cursor-pointer bg-emerald-100 text-emerald-800 rounded-lg shadow p-4 w-full text-center hover:bg-emerald-200 transition"
-          >
+          <div onClick={() => navigate('/smart-farming-tools')} className="cursor-pointer bg-emerald-100 text-emerald-800 rounded-lg shadow p-4 w-full text-center hover:bg-emerald-200 transition">
             <div className="text-2xl mb-2">🧠</div>
             <h3 className="font-bold text-lg">Smart Farming Tools</h3>
           </div>
 
-          <div
-            onClick={() => navigate('/agri-banking')}
-            className="cursor-pointer bg-indigo-100 text-indigo-800 rounded-lg shadow p-4 w-full text-center hover:bg-indigo-200 transition"
-          >
+          {/* ✅ Agri-Banking - updated navigation */}
+          <div onClick={() => navigate('/agri-banking')} className="cursor-pointer bg-indigo-100 text-indigo-800 rounded-lg shadow p-4 w-full text-center hover:bg-indigo-200 transition">
             <div className="text-2xl mb-2">🏦</div>
             <h3 className="font-bold text-lg">Agri-Banking</h3>
           </div>
 
-          <div
-            onClick={() => navigate('/agricultural-finance')}
-            className="cursor-pointer bg-amber-100 text-amber-800 rounded-lg shadow p-4 w-full text-center hover:bg-amber-200 transition"
-          >
+          <div onClick={() => navigate('/agricultural-finance')} className="cursor-pointer bg-amber-100 text-amber-800 rounded-lg shadow p-4 w-full text-center hover:bg-amber-200 transition">
             <div className="text-2xl mb-2">💰</div>
             <h3 className="font-bold text-lg">Agricultural Finance</h3>
           </div>

@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import Topbar from '../components/Topbar';
+import Sidebar from '../components/Sidebar';
 
 const DigitalMarket = () => {
   const [formData, setFormData] = useState({
@@ -15,8 +17,12 @@ const DigitalMarket = () => {
   const user = JSON.parse(localStorage.getItem('user')) || {};
 
   const fetchListings = async () => {
-    const res = await axios.get('http://localhost:8081/api/digital-market');
-    setListings(res.data);
+    try {
+      const res = await axios.get('http://localhost:8081/api/digital-market');
+      setListings(res.data);
+    } catch (err) {
+      console.error('Error fetching listings:', err);
+    }
   };
 
   useEffect(() => {
@@ -34,92 +40,104 @@ const DigitalMarket = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const payload = { ...formData, user_id: user?.id };
-    await axios.post('http://localhost:8081/api/digital-market', payload);
-    alert('Product listed in Digital Market!');
-    setFormData({
-      product_name: '',
-      quantity: '',
-      price: '',
-      buyer_type: 'off-taker',
-      contract_link: '',
-      verified: false,
-    });
-    fetchListings();
+
+    try {
+      await axios.post('http://localhost:8081/api/digital-market', payload);
+      alert('Product listed in Digital Market!');
+      setFormData({
+        product_name: '',
+        quantity: '',
+        price: '',
+        buyer_type: 'off-taker',
+        contract_link: '',
+        verified: false,
+      });
+      fetchListings();
+    } catch (err) {
+      console.error('Submission failed:', err);
+    }
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
-      <h1 className="text-3xl font-bold text-green-700 mb-4">Digital Market</h1>
+    <div className="bg-gray-100 min-h-screen flex flex-col">
+      <Topbar />
+      <div className="flex pt-20">
+        <Sidebar />
 
-      <form onSubmit={handleSubmit} className="bg-white p-4 rounded shadow mb-6 space-y-4">
-        <h2 className="text-xl font-semibold">List Your Produce</h2>
+        <div className="flex-1 p-6 md:p-10">
+          <h1 className="text-3xl font-bold text-green-700 mb-6">Digital Market</h1>
 
-        <input
-          type="text"
-          name="product_name"
-          placeholder="Product Name"
-          value={formData.product_name}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-          required
-        />
-        <input
-          type="text"
-          name="quantity"
-          placeholder="Quantity (e.g., 100kg)"
-          value={formData.quantity}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-          required
-        />
-        <input
-          type="number"
-          name="price"
-          placeholder="Price (ZAR)"
-          value={formData.price}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-          required
-        />
-        <select name="buyer_type" value={formData.buyer_type} onChange={handleChange} className="w-full p-2 border rounded">
-          <option value="off-taker">Off-taker</option>
-          <option value="processor">Processor</option>
-          <option value="export-buyer">Export Buyer</option>
-        </select>
-        <input
-          type="text"
-          name="contract_link"
-          placeholder="Digital Contract Link (optional)"
-          value={formData.contract_link}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-        />
-        <label className="flex items-center space-x-2">
-          <input type="checkbox" name="verified" checked={formData.verified} onChange={handleChange} />
-          <span>Verified Seller</span>
-        </label>
+          <form onSubmit={handleSubmit} className="bg-white p-4 md:p-6 rounded shadow mb-8 space-y-4">
+            <h2 className="text-xl font-semibold">List Your Produce</h2>
 
-        <button className="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700" type="submit">
-          List Product
-        </button>
-      </form>
+            <input
+              type="text"
+              name="product_name"
+              placeholder="Product Name"
+              value={formData.product_name}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+              required
+            />
+            <input
+              type="text"
+              name="quantity"
+              placeholder="Quantity (e.g., 100kg)"
+              value={formData.quantity}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+              required
+            />
+            <input
+              type="number"
+              name="price"
+              placeholder="Price (ZAR)"
+              value={formData.price}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+              required
+            />
+            <select name="buyer_type" value={formData.buyer_type} onChange={handleChange} className="w-full p-2 border rounded">
+              <option value="off-taker">Off-taker</option>
+              <option value="processor">Processor</option>
+              <option value="export-buyer">Export Buyer</option>
+            </select>
+            <input
+              type="text"
+              name="contract_link"
+              placeholder="Digital Contract Link (optional)"
+              value={formData.contract_link}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+            />
+            <label className="flex items-center space-x-2">
+              <input type="checkbox" name="verified" checked={formData.verified} onChange={handleChange} />
+              <span>Verified Seller</span>
+            </label>
 
-      <h2 className="text-xl font-semibold mb-2">Recent Listings</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {listings.map((item) => (
-          <div key={item.id} className="border p-4 rounded shadow bg-white">
-            <h3 className="text-lg font-bold">{item.product_name}</h3>
-            <p><strong>Quantity:</strong> {item.quantity}</p>
-            <p><strong>Price:</strong> R{parseFloat(item.price).toFixed(2)}</p>
-            <p><strong>Buyer Type:</strong> {item.buyer_type}</p>
-            <p><strong>Verified:</strong> {item.verified ? 'Yes' : 'No'}</p>
-            {item.contract_link && (
-              <a href={item.contract_link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-                View Contract
-              </a>
-            )}
+            <button className="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700" type="submit">
+              List Product
+            </button>
+          </form>
+
+          <h2 className="text-xl font-semibold mb-4">Recent Listings</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {listings.map((item) => (
+              <div key={item.id} className="border p-4 rounded shadow bg-white">
+                <h3 className="text-lg font-bold">{item.product_name}</h3>
+                <p><strong>Quantity:</strong> {item.quantity}</p>
+                <p><strong>Price:</strong> R{parseFloat(item.price).toFixed(2)}</p>
+                <p><strong>Buyer Type:</strong> {item.buyer_type}</p>
+                <p><strong>Verified:</strong> {item.verified ? 'Yes' : 'No'}</p>
+                {item.contract_link && (
+                  <a href={item.contract_link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                    View Contract
+                  </a>
+                )}
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
     </div>
   );
