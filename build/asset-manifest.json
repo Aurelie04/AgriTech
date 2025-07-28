@@ -1,0 +1,19 @@
+{
+  "files": {
+    "main.css": "/AgriTech/static/css/main.ae2188b6.css",
+    "main.js": "/AgriTech/static/js/main.93d0b002.js",
+    "static/js/511.87de581e.chunk.js": "/AgriTech/static/js/511.87de581e.chunk.js",
+    "static/media/drone.png": "/AgriTech/static/media/drone.59c1aa3970af85973bc6.png",
+    "static/media/harvest.jpg": "/AgriTech/static/media/harvest.5826f3940b6915a257dd.jpg",
+    "static/media/sitelogo.png": "/AgriTech/static/media/sitelogo.9fbb46e302c94f7aed35.png",
+    "static/media/tractor.jpeg": "/AgriTech/static/media/tractor.01c99ed611765faf49b2.jpeg",
+    "index.html": "/AgriTech/index.html",
+    "main.ae2188b6.css.map": "/AgriTech/static/css/main.ae2188b6.css.map",
+    "main.93d0b002.js.map": "/AgriTech/static/js/main.93d0b002.js.map",
+    "511.87de581e.chunk.js.map": "/AgriTech/static/js/511.87de581e.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.ae2188b6.css",
+    "static/js/main.93d0b002.js"
+  ]
+}
