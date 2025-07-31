@@ -2,29 +2,31 @@ const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const bodyParser = require('body-parser');
-const session = require('express-session'); // <-- Added for session handling
+const session = require('express-session');
+const authRoutes = require('./routes/auth'); // ✅ Missing before
 
 const app = express();
 
 // ---------- MIDDLEWARE ----------
 app.use(cors({
   origin: 'http://localhost:3000',
-  credentials: true, // Enable cookie sharing with frontend
+  credentials: true,
 }));
 app.use(express.json());
 app.use(bodyParser.json());
 
 app.use(session({
-  secret: 'your-secret-key', // Change this in production
+  name: 'arimma.sid',
+  secret: 'your-secret-key', // Replace with a more secure secret in production
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false, // set to true if using HTTPS
+    secure: false, // Set to false in development (production should be true with HTTPS)
     httpOnly: true,
-    maxAge: 1000 * 60 * 60, // 1 hour
+    sameSite: 'lax',
+    maxAge: 1000 * 60 * 60, // 1 hour session expiration
   },
 }));
 
@@ -33,25 +35,20 @@ const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: '',
-  database: 'agritechdb'
+  database: 'agritechdb',
 });
 
-// ---------- ROUTES ----------
-const agriBankingRoutes = require('./routes/agriBanking');
-app.use('/api/agri-banking', agriBankingRoutes);
-
-const solarFinanceRoutes = require('./routes/solarFinanceRoutes');
-app.use('/api/solar-finance', solarFinanceRoutes);
-
-// ---------- SESSION-BASED AUTH ----------
+// ---------- AUTH MIDDLEWARE ----------
 const requireLogin = (req, res, next) => {
   if (!req.session.userId) {
-    return res.status(401).json({ message: 'Unauthorized' });
+    return res.status(401).json({ message: 'Unauthorized. Please log in.' });
   }
   next();
 };
 
-// ---------- AUTH ----------
+// ---------- AUTH ROUTES ----------
+app.use('/api/auth', authRoutes); // ✅ Moved up and added import
+
 app.post('/api/register', async (req, res) => {
   const { name, email, password, phone, address, business, role } = req.body;
   if (!name || !email || !password) {
@@ -91,31 +88,34 @@ app.post('/api/login', (req, res) => {
 
     if (!passwordMatch) return res.status(401).json({ error: 'Invalid credentials' });
 
-    // ✅ Set session
+    // Store session info
     req.session.userId = user.id;
+    req.session.userName = user.name;
+    req.session.email = user.email;
 
-    // ✅ Log the session ID for debugging
-    console.log('Session ID on login:', req.sessionID);  // <--- Add this line here
+    console.log('Session created. ID:', req.sessionID);
 
-    // ✅ Respond to frontend
+    // Send the response with session info and user data
     res.json({
       message: 'Login successful',
       sessionId: req.sessionID,
-      user: { id: user.id, name: user.name, email: user.email }
+      user: { id: user.id, name: user.name, email: user.email },
     });
   });
 });
 
 
 app.post('/api/logout', (req, res) => {
-  req.session.destroy((err) => {
-    if (err) return res.status(500).json({ message: 'Logout failed' });
-    res.clearCookie('connect.sid');
+  req.session.destroy(err => {
+    if (err) {
+      return res.status(500).json({ message: 'Logout failed' });
+    }
+    res.clearCookie('arimma.sid');
     res.json({ message: 'Logged out successfully' });
   });
 });
 
-// ---------- PASSWORD MANAGEMENT ----------
+// ---------- PASSWORD RESET ----------
 app.post('/api/forgot-password', (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ message: 'Email is required' });
@@ -127,10 +127,11 @@ app.post('/api/forgot-password', (req, res) => {
     const token = uuidv4();
     const resetLink = `http://localhost:3000/reset-password/${token}`;
 
-    db.query('UPDATE farmers SET reset_token = ? WHERE email = ?', [token, email], (err2) => {
-      if (err2) return res.status(500).json({ message: 'Failed to save reset token' });
-      res.json({ message: 'Reset link generated.', resetLink });
-    });
+    db.query('UPDATE farmers SET reset_token = ?, reset_token_expiration = DATE_ADD(NOW(), INTERVAL 1 HOUR) WHERE email = ?',
+      [token, email], (err2) => {
+        if (err2) return res.status(500).json({ message: 'Failed to save reset token' });
+        res.json({ message: 'Reset link generated.', resetLink });
+      });
   });
 });
 
@@ -164,7 +165,52 @@ app.post('/api/reset-password/:token', async (req, res) => {
   }
 });
 
-// ---------- OTHER ROUTES (NO CHANGES, SESSION-COMPATIBLE) ----------
+// ---------- PROFILE ----------
+app.get('/api/farmer/profile', (req, res) => {
+  if (req.session.userId) {
+    const userId = req.session.userId;
+    db.query('SELECT * FROM farmers WHERE id = ?', [userId], (err, results) => {
+      if (err) return res.status(500).json({ error: 'DB error' });
+      if (results.length > 0) return res.json(results[0]);
+      res.status(404).json({ error: 'User not found' });
+    });
+  } else {
+    res.status(401).json({ error: 'Unauthorized' });
+  }
+});
+
+app.put('/api/farmer/profile', (req, res) => {
+  if (req.session.userId) {
+    const userId = req.session.userId;
+    const { name, phone, address, business } = req.body;
+    db.query(
+      'UPDATE farmers SET name = ?, phone = ?, address = ?, business = ?, updated_at = NOW() WHERE id = ?',
+      [name, phone, address, business, userId],
+      (err, result) => {
+        if (err) return res.status(500).json({ error: 'DB error' });
+
+        if (result.affectedRows === 0) {
+          return res.status(400).json({ error: 'No changes made.' });
+        }
+
+        res.json({ success: true });
+      }
+    );
+  } else {
+    res.status(401).json({ error: 'Unauthorized' });
+  }
+});
+
+// ---------- OTHER ROUTES ----------
+const agriBankingRoutes = require('./routes/agriBanking');
+app.use('/api/agri-banking', agriBankingRoutes);
+
+const solarFinanceRoutes = require('./routes/solarFinanceRoutes');
+app.use('/api/solar-finance', solarFinanceRoutes);
+
+const exchangeRoutes = require('./routes/exchangeApi');
+app.use('/api/exchange', exchangeRoutes);
+
 app.get('/api/yield/tomatoes', (req, res) => {
   const yieldData = [
     { month: 'Jan', harvest: 120, revenue: 1000 },
@@ -176,8 +222,15 @@ app.get('/api/yield/tomatoes', (req, res) => {
   res.json({ title: 'Top Best-seller product', crop: 'Tomatoes', yieldData });
 });
 
-app.post('/api/equipment/request', (req, res) => {
-  const { userId, equipment_name, purpose, date_from, date_to } = req.body;
+// ---------- PROTECTED ROUTES ----------
+app.get('/api/protected', requireLogin, (req, res) => {
+  res.json({ message: 'This is a protected route', user: req.session.userName });
+});
+
+app.post('/api/equipment/request', requireLogin, (req, res) => {
+  const { equipment_name, purpose, date_from, date_to } = req.body;
+  const userId = req.session.userId;
+
   const sql = `INSERT INTO equipment_requests (user_id, equipment_name, purpose, date_from, date_to) VALUES (?, ?, ?, ?, ?)`;
   db.query(sql, [userId, equipment_name, purpose, date_from, date_to], (err, result) => {
     if (err) return res.status(500).send("Failed to book equipment");
@@ -185,81 +238,7 @@ app.post('/api/equipment/request', (req, res) => {
   });
 });
 
-app.get('/api/farmer/:id', (req, res) => {
-  const { id } = req.params;
-  db.query('SELECT * FROM farmers WHERE id = ?', [id], (err, results) => {
-    if (err) return res.status(500).json(err);
-    if (results.length === 0) return res.status(404).json({ message: 'Farmer not found' });
-    res.json(results[0]);
-  });
-});
-
-app.put('/api/farmer/:id', (req, res) => {
-  const { id } = req.params;
-  const { name, phone, address, business } = req.body;
-  db.query(
-    'UPDATE farmers SET name = ?, phone = ?, address = ?, business = ? WHERE id = ?',
-    [name, phone, address, business, id],
-    (err, result) => {
-      if (err) return res.status(500).json(err);
-      res.json({ message: 'Profile updated successfully' });
-    }
-  );
-});
-
-app.post('/api/insurance/apply', (req, res) => {
-  const { fullName, type, bundle, description } = req.body;
-  const sql = `INSERT INTO insurance_requests (full_name, insurance_type, bundle, description) VALUES (?, ?, ?, ?)`;
-  db.query(sql, [fullName, type, bundle, description], (err, result) => {
-    if (err) return res.status(500).json({ message: 'Internal server error' });
-    res.status(200).json({ message: 'Insurance request submitted successfully' });
-  });
-});
-
-app.get('/api/market', (req, res) => {
-  db.query('SELECT * FROM market_listings', (err, results) => {
-    if (err) return res.status(500).json(err);
-    res.json(results);
-  });
-});
-
-app.post('/api/digital-market', (req, res) => {
-  const { user_id, product_name, quantity, price, buyer_type, verified, contract_link } = req.body;
-  const sql = `
-    INSERT INTO digital_market_listings 
-    (user_id, product_name, quantity, price, buyer_type, verified, contract_link) 
-    VALUES (?, ?, ?, ?, ?, ?, ?)`;
-  db.query(sql, [user_id, product_name, quantity, price, buyer_type, verified, contract_link], (err, result) => {
-    if (err) return res.status(500).json({ error: err });
-    res.json({ message: 'Product listed in the Digital Market!' });
-  });
-});
-
-app.get('/api/digital-market', (req, res) => {
-  db.query('SELECT * FROM digital_market_listings', (err, results) => {
-    if (err) return res.status(500).json({ error: 'Failed to fetch listings' });
-    res.json(results);
-  });
-});
-
-app.post('/api/solar/apply', (req, res) => {
-  const {
-    name, email, phone, property_type,
-    location, package_type, finance_model, monthly_income
-  } = req.body;
-
-  const sql = `INSERT INTO solar_finance_applications
-    (name, email, phone, property_type, location, package_type, finance_model, monthly_income)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-
-  db.query(sql, [name, email, phone, property_type, location, package_type, finance_model, monthly_income],
-    (err, result) => {
-      if (err) return res.status(500).json({ message: "Server error" });
-      res.json({ success: true, message: "Application submitted" });
-    });
-});
-
-// ---------- START ----------
+// ---------- START SERVER ----------
 app.listen(8081, () => {
   console.log('Server running on port 8081');
 });
