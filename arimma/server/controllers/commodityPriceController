@@ -1,0 +1,6 @@
+exports.getPrices = (req, res) => {
+  db.query("SELECT * FROM commodity_prices", (err, rows) => {
+    if (err) return res.status(500).json({ error: 'Price fetch failed' });
+    res.json(rows);
+  });
+};
