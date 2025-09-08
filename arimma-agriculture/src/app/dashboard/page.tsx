@@ -162,10 +162,13 @@ export default function DashboardPage() {
             <>
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Farm Management</h3>
-                <p className="text-gray-600 mb-4">Manage your farm operations and track crop progress</p>
-                <button className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
-                  View Farms
-                </button>
+                <p className="text-gray-600 mb-4">Browse, search, and manage your agricultural products</p>
+                <a 
+                  href="/farm-management"
+                  className="inline-block bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                >
+                  Manage Products
+                </a>
               </div>
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Crop Tracking</h3>
