@@ -1,69 +1,73 @@
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 const db = require('../db');
 
-// Register
+// ---------- REGISTER ----------
 router.post('/register', async (req, res) => {
   const { name, email, password } = req.body;
-  if (!(name && email && password)) {
+  if (!name || !email || !password)
     return res.status(400).json({ message: 'All fields are required' });
-  }
 
-  db.query('SELECT * FROM farmers WHERE email = ?', [email], async (err, results) => {
-    if (err) return res.status(500).json(err);
-    if (results.length > 0) return res.status(400).json({ message: 'Email already registered' });
+  try {
+    const [existing] = await db.query('SELECT * FROM farmers WHERE email = ?', [email]);
+    if (existing.length > 0)
+      return res.status(400).json({ message: 'Email already registered' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const sql = 'INSERT INTO farmers (name, email, password) VALUES (?, ?, ?)';
-    db.query(sql, [name, email, hashedPassword], (err, result) => {
-      if (err) return res.status(500).json(err);
-      return res.status(201).json({ message: 'User registered successfully' });
-    });
-  });
+    await db.query('INSERT INTO farmers (name, email, password) VALUES (?, ?, ?)', [
+      name,
+      email,
+      hashedPassword
+    ]);
+
+    res.status(201).json({ message: 'User registered successfully' });
+  } catch (err) {
+    console.error('Register error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
-// Login with session management
-router.post('/login', (req, res) => {
+// ---------- LOGIN ----------
+router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
-  db.query('SELECT * FROM farmers WHERE email = ?', [email], async (err, results) => {
-    if (err) return res.status(500).json(err);
-    if (results.length === 0) return res.status(401).json({ message: 'Invalid email or password' });
+  try {
+    const [rows] = await db.query('SELECT * FROM farmers WHERE email = ?', [email]);
+    if (rows.length === 0)
+      return res.status(401).json({ message: 'Invalid email or password' });
 
-    const valid = await bcrypt.compare(password, results[0].password);
-    if (!valid) return res.status(401).json({ message: 'Invalid email or password' });
+    const valid = await bcrypt.compare(password, rows[0].password);
+    if (!valid)
+      return res.status(401).json({ message: 'Invalid email or password' });
 
-    // Set session
-    req.session.user = {
-      id: results[0].id,
-      name: results[0].name,
-      email: results[0].email,
-    };
+    req.session.userId = rows[0].id;
+    req.session.userName = rows[0].name;
+    req.session.email = rows[0].email;
 
-    return res.status(200).json({ 
-      message: 'Login successful',
-      user: req.session.user
-    });
-  });
+    res.json({ message: 'Login successful', user: { id: rows[0].id, name: rows[0].name, email: rows[0].email } });
+  } catch (err) {
+    console.error('Login error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
-// Logout route (optional)
+// ---------- LOGOUT ----------
 router.post('/logout', (req, res) => {
   req.session.destroy(err => {
     if (err) return res.status(500).json({ message: 'Logout failed' });
-    res.clearCookie('connect.sid'); // Clear session cookie
-    return res.status(200).json({ message: 'Logout successful' });
+    res.clearCookie('arimma.sid');
+    res.json({ message: 'Logout successful' });
   });
 });
 
-// Get current session user
-router.get('/me', (req, res) => {
-  if (req.session.user) {
-    return res.status(200).json({ user: req.session.user });
-  } else {
-    return res.status(401).json({ message: 'Not logged in' });
-  }
-});
+// ---------- CURRENT USER ----------
+// router.get('/current-user', (req, res) => {
+//   if (req.session.userId) {
+//     res.json({ user: { id: req.session.userId, name: req.session.userName, email: req.session.email } });
+//   } else {
+//     res.status(401).json({ message: 'Not logged in' });
+//   }
+// });
 
 module.exports = router;

@@ -1,0 +1,29 @@
+<svg width="200" height="80" viewBox="0 0 200 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Logo Icon - Stylized tree/plant -->
+  <g transform="translate(10, 10)">
+    <!-- Bottom segment (darkest green) -->
+    <rect x="0" y="45" width="50" height="8" rx="4" fill="#1B5E20"/>
+    <!-- Second segment (lighter green) -->
+    <rect x="5" y="35" width="40" height="8" rx="4" fill="#2E7D32"/>
+    <!-- Third segment (dark green) -->
+    <rect x="10" y="25" width="30" height="8" rx="4" fill="#1B5E20"/>
+    <!-- Fourth segment (lighter green) -->
+    <rect x="15" y="15" width="20" height="8" rx="4" fill="#2E7D32"/>
+    <!-- Fifth segment (dark green) -->
+    <rect x="20" y="5" width="10" height="8" rx="4" fill="#1B5E20"/>
+    <!-- Top segment (darkest green) -->
+    <rect x="22" y="-5" width="6" height="8" rx="4" fill="#1B5E20"/>
+  </g>
+  
+  <!-- Text Elements -->
+  <g transform="translate(80, 10)">
+    <!-- "Arimma" text -->
+    <text x="0" y="25" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#1B5E20">Arimma</text>
+    
+    <!-- "Agriculture." text -->
+    <text x="0" y="45" font-family="Arial, sans-serif" font-size="14" font-weight="normal" fill="#1B5E20">Agriculture.</text>
+    
+    <!-- "Simplified Possibilities." tagline -->
+    <text x="0" y="60" font-family="Arial, sans-serif" font-size="12" font-style="italic" fill="#2E7D32">Simplified Possibilities.</text>
+  </g>
+</svg>

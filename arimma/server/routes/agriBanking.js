@@ -13,7 +13,7 @@ const db = mysql.createConnection({
 
 db.connect((err) => {
   if (err) console.error("DB connection failed:", err);
-  else console.log("✅ Connected to MySQL (agribanking.js)");
+  //else console.log("✅ Connected to MySQL (agribanking.js)");
 });
 
 // Middleware: require login
