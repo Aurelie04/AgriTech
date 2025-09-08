@@ -161,7 +161,7 @@ export default function ClaimsPage() {
                   <div>
                     <p className="text-sm text-gray-500">Estimated Loss</p>
                     <p className="font-medium">
-                      {claim.estimated_loss ? `$${claim.estimated_loss.toLocaleString()}` : 'Not specified'}
+                      {claim.estimated_loss ? `R${claim.estimated_loss.toLocaleString()}` : 'Not specified'}
                     </p>
                   </div>
                 </div>
@@ -317,7 +317,7 @@ function ClaimForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: () 
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Estimated Loss (USD)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Estimated Loss (ZAR)</label>
             <input
               type="number"
               value={formData.estimatedLoss}

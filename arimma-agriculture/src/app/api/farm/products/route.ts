@@ -20,12 +20,15 @@ export async function GET(request: NextRequest) {
         pc.name as category_name,
         pc.icon as category_icon,
         u.email as seller_email,
-        u.profile as seller_profile,
+        up.first_name as seller_first_name,
+        up.last_name as seller_last_name,
+        up.business_name as seller_business,
         AVG(pr.rating) as average_rating,
         COUNT(pr.id) as review_count
       FROM farm_products fp
       JOIN product_categories pc ON fp.category_id = pc.id
       JOIN users u ON fp.user_id = u.id
+      LEFT JOIN user_profiles up ON u.id = up.user_id
       LEFT JOIN product_reviews pr ON fp.id = pr.product_id
       WHERE 1=1
     `;
@@ -66,7 +69,7 @@ export async function GET(request: NextRequest) {
     
     // Get total count for pagination
     const countQuery = query.replace(
-      'SELECT fp.*, pc.name as category_name, pc.icon as category_icon, u.email as seller_email, u.profile as seller_profile, AVG(pr.rating) as average_rating, COUNT(pr.id) as review_count',
+      'SELECT fp.*, pc.name as category_name, pc.icon as category_icon, u.email as seller_email, up.first_name as seller_first_name, up.last_name as seller_last_name, up.business_name as seller_business, AVG(pr.rating) as average_rating, COUNT(pr.id) as review_count',
       'SELECT COUNT(DISTINCT fp.id) as total'
     );
     

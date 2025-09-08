@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 
 interface Product {
   id: number;
+  user_id: number;
   title: string;
   description: string;
   price: number;
@@ -88,6 +89,8 @@ export default function FarmManagementPage() {
       
       const response = await fetch(`/api/farm/products?${params}`);
       
+      console.log('Products API Response Status:', response.status);
+      
       if (!response.ok) {
         // Handle different error status codes gracefully
         if (response.status === 500) {
@@ -104,6 +107,7 @@ export default function FarmManagementPage() {
       }
       
       const data = await response.json();
+      console.log('Products API Response Data:', data);
       
       // Ensure data is valid before accessing properties
       if (!data || typeof data !== 'object') {
@@ -149,10 +153,33 @@ export default function FarmManagementPage() {
     router.push(`/farm-management/products/${productId}`);
   };
 
+  const handleDeleteProduct = async (productId: number, productTitle: string) => {
+    if (!confirm(`Are you sure you want to delete "${productTitle}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/farm/products/${productId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        alert('Product deleted successfully!');
+        fetchProducts(); // Refresh the product list
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Error deleting product. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      alert('Error deleting product. Please try again.');
+    }
+  };
+
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-ZA', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'ZAR'
     }).format(price);
   };
 
@@ -314,62 +341,117 @@ export default function FarmManagementPage() {
 
         {/* Products Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {products.map((product) => (
-            <div
-              key={product.id}
-              onClick={() => handleProductClick(product.id)}
-              className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-            >
-              <div className="aspect-w-16 aspect-h-9">
-                <img
-                  src={product.image_url || '/placeholder-product.jpg'}
-                  alt={product.title}
-                  className="w-full h-48 object-cover rounded-t-lg"
-                />
-              </div>
-              
-              <div className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-500">{product.category_icon} {product.category_name}</span>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(product.status)}`}>
-                    {product.status.replace('_', ' ')}
-                  </span>
+          {products.map((product) => {
+            const isOwner = user && user.id === product.user_id;
+            
+            return (
+              <div
+                key={product.id}
+                className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div className="relative">
+                  <div 
+                    className="aspect-w-16 aspect-h-9 cursor-pointer"
+                    onClick={() => handleProductClick(product.id)}
+                  >
+                    <img
+                      src={product.image_url || '/placeholder-product.jpg'}
+                      alt={product.title}
+                      className="w-full h-48 object-cover rounded-t-lg"
+                    />
+                  </div>
+                  
+                  {/* Owner Action Buttons */}
+                  {isOwner && (
+                    <div className="absolute top-2 right-2 flex space-x-1">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/farm-management/products/${product.id}`);
+                        }}
+                        className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors shadow-sm"
+                        title="Edit Product"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteProduct(product.id, product.title);
+                        }}
+                        className="bg-red-600 text-white p-2 rounded-full hover:bg-red-700 transition-colors shadow-sm"
+                        title="Delete Product"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
                 </div>
                 
-                <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
-                  {product.title}
-                </h3>
-                
-                <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                  {product.description}
-                </p>
-                
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xl font-bold text-green-600">
-                    {formatPrice(product.price)}
-                  </span>
-                  <span className="text-sm text-gray-500">
-                    {product.quantity} {product.unit}
-                  </span>
-                </div>
-                
-                <div className="flex items-center justify-between text-sm text-gray-500">
-                  <span>{product.location}</span>
-                  {product.organic && <span className="text-green-600">🌱 Organic</span>}
-                  {product.certified && <span className="text-blue-600">✓ Certified</span>}
-                </div>
-                
-                {product.average_rating && (
-                  <div className="flex items-center mt-2">
-                    <span className="text-yellow-400">⭐</span>
-                    <span className="text-sm text-gray-600 ml-1">
-                      {product.average_rating.toFixed(1)} ({product.review_count} reviews)
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-gray-500">{product.category_icon} {product.category_name}</span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(product.status)}`}>
+                      {product.status.replace('_', ' ')}
                     </span>
                   </div>
-                )}
+                  
+                  <h3 
+                    className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 cursor-pointer hover:text-green-600 transition-colors"
+                    onClick={() => handleProductClick(product.id)}
+                  >
+                    {product.title}
+                  </h3>
+                  
+                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                    {product.description}
+                  </p>
+                  
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xl font-bold text-green-600">
+                      {formatPrice(product.price)}
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      {product.quantity} {product.unit}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-sm text-gray-500 mb-2">
+                    <span>{product.location}</span>
+                    <div className="flex space-x-2">
+                      {product.organic && <span className="text-green-600">🌱 Organic</span>}
+                      {product.certified && <span className="text-blue-600">✓ Certified</span>}
+                    </div>
+                  </div>
+                  
+                  {product.average_rating > 0 && (
+                    <div className="flex items-center">
+                      <span className="text-yellow-400">⭐</span>
+                      <span className="text-sm text-gray-600 ml-1">
+                        {product.average_rating.toFixed(1)} ({product.review_count} reviews)
+                      </span>
+                    </div>
+                  )}
+                  
+                  {/* Seller Info */}
+                  <div className="mt-3 pt-3 border-t border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500">
+                        by {product.seller_email}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {new Date(product.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Empty State */}
@@ -606,10 +688,13 @@ function AddProductForm({
       });
 
       if (response.ok) {
+        const result = await response.json();
+        console.log('Product added successfully:', result);
         alert('Product added successfully!');
         onSuccess();
       } else {
         const errorData = await response.json();
+        console.error('Error adding product:', errorData);
         alert(errorData.error || 'Error adding product. Please try again.');
       }
     } catch (error) {

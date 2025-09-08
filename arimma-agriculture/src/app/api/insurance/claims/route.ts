@@ -120,7 +120,7 @@ Reported Date: ${new Date().toISOString().split('T')[0]}
 Description:
 ${data.description}
 
-Estimated Loss: ${data.estimatedLoss ? `$${data.estimatedLoss}` : 'Not specified'}
+Estimated Loss: ${data.estimatedLoss ? `R${data.estimatedLoss}` : 'Not specified'}
 
 ---
 This claim was submitted through the Arimma Agriculture platform.

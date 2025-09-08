@@ -98,6 +98,16 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => router.push('/')}
+                  className="text-gray-700 hover:text-green-600 transition-colors flex items-center space-x-1"
+                  title="Go to Home Page"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                  <span className="hidden sm:block">Home</span>
+                </button>
                 <span className="text-gray-700 hidden sm:block">Welcome, {user.profile?.first_name || user.email}</span>
                 <button
                   onClick={logout}
@@ -173,7 +183,10 @@ export default function DashboardPage() {
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Crop Tracking</h3>
                 <p className="text-gray-600 mb-4">Monitor crop growth and health</p>
-                <button className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
+                <button 
+                  onClick={() => router.push('/crop-tracking')}
+                  className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                >
                   Track Crops
                 </button>
               </div>

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 
 interface Product {
   id: number;
+  user_id: number;
   title: string;
   description: string;
   price: number;
@@ -56,9 +57,9 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-ZA', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'ZAR'
     }).format(price);
   };
 
@@ -77,6 +78,31 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   };
 
   const isOwner = user && product && user.id === product.user_id;
+
+  const handleDeleteProduct = async () => {
+    if (!product) return;
+    
+    if (!confirm(`Are you sure you want to delete "${product.title}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/farm/products/${product.id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        alert('Product deleted successfully!');
+        router.push('/farm-management');
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Error deleting product. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      alert('Error deleting product. Please try again.');
+    }
+  };
 
   if (loading) {
     return (
@@ -128,12 +154,20 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                 ← Back to Farm Management
               </button>
               {isOwner && (
-                <button
-                  onClick={() => setShowEditForm(true)}
-                  className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
-                >
-                  Edit Product
-                </button>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => setShowEditForm(true)}
+                    className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                  >
+                    Edit Product
+                  </button>
+                  <button
+                    onClick={handleDeleteProduct}
+                    className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
+                  >
+                    Delete Product
+                  </button>
+                </div>
               )}
             </div>
           </div>

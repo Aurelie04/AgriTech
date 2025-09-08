@@ -244,7 +244,7 @@ export default function InsurancePage() {
                 <div className="space-y-2 mb-6">
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-500">Coverage Amount:</span>
-                    <span className="text-sm font-medium">${product.coverage_amount.toLocaleString()}</span>
+                    <span className="text-sm font-medium">R{product.coverage_amount.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-500">Premium Rate:</span>
@@ -252,7 +252,7 @@ export default function InsurancePage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-500">Deductible:</span>
-                    <span className="text-sm font-medium">${product.deductible.toLocaleString()}</span>
+                    <span className="text-sm font-medium">R{product.deductible.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-500">Policy Term:</span>

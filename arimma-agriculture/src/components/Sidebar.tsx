@@ -142,6 +142,17 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Navigation Menu */}
         <nav className="flex-1 p-4">
           <ul className="space-y-2">
+            {/* Home Link */}
+            <li>
+              <button
+                onClick={() => handleNavigation('/')}
+                className="w-full flex items-center space-x-3 px-4 py-3 text-left rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-colors group border-b border-gray-100 mb-2"
+              >
+                <span className="text-xl">🏠</span>
+                <span className="font-medium">Home</span>
+              </button>
+            </li>
+            
             {menuItems.map((item, index) => (
               <li key={index}>
                 <button
