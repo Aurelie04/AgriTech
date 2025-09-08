@@ -2,11 +2,13 @@
 
 import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import Sidebar from '../../components/Sidebar';
 
 export default function DashboardPage() {
   const { user, logout, loading } = useAuth();
   const router = useRouter();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -44,34 +46,72 @@ export default function DashboardPage() {
     return descriptions[role as keyof typeof descriptions] || '';
   };
 
+  const getInsuranceQuickActions = (role: string) => {
+    const actions = {
+      farmer: [
+        { name: 'Crop Insurance', icon: '🌱', description: 'Protect your crops from weather and pests', href: '/insurance' },
+        { name: 'Equipment Insurance', icon: '🚜', description: 'Cover your farm machinery and tools', href: '/insurance' },
+        { name: 'File Claim', icon: '📋', description: 'Submit insurance claims quickly', href: '/insurance/claims' }
+      ],
+      buyer: [
+        { name: 'Asset Insurance', icon: '🏭', description: 'Protect your storage and processing facilities', href: '/insurance' },
+        { name: 'Liability Coverage', icon: '🛡️', description: 'Comprehensive business protection', href: '/insurance' }
+      ],
+      trader: [
+        { name: 'Portfolio Insurance', icon: '💼', description: 'Protect your trading investments', href: '/insurance' },
+        { name: 'Market Risk Coverage', icon: '📈', description: 'Weather and price index protection', href: '/insurance' }
+      ],
+      financier: [
+        { name: 'Loan Protection', icon: '💰', description: 'Insure agricultural loans and investments', href: '/insurance' },
+        { name: 'Risk Assessment', icon: '⚠️', description: 'Evaluate insurance needs for clients', href: '/insurance' }
+      ],
+      logistics: [
+        { name: 'Fleet Insurance', icon: '🚛', description: 'Cover your transportation vehicles', href: '/insurance' },
+        { name: 'Cargo Protection', icon: '📦', description: 'Insure goods in transit', href: '/insurance' }
+      ]
+    };
+    return actions[role as keyof typeof actions] || [];
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <img 
-                src="/arimma-logo.svg" 
-                alt="Arimma Agriculture Logo" 
-                className="h-24 w-auto"
-              />
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-700">Welcome, {user.profile?.first_name || user.email}</span>
-              <button
-                onClick={logout}
-                className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
-              >
-                Logout
-              </button>
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar */}
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col lg:ml-0">
+        {/* Header */}
+        <header className="bg-white shadow-sm">
+          <div className="px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center py-4">
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => setSidebarOpen(true)}
+                  className="lg:hidden p-2 rounded-md hover:bg-gray-100"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+                <div className="hidden lg:block">
+                  <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
+                </div>
+              </div>
+              <div className="flex items-center space-x-4">
+                <span className="text-gray-700 hidden sm:block">Welcome, {user.profile?.first_name || user.email}</span>
+                <button
+                  onClick={logout}
+                  className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
+                >
+                  Logout
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Main Content */}
+        <main className="flex-1 px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">
             {getRoleDisplayName(user.role)} Dashboard
@@ -248,7 +288,47 @@ export default function DashboardPage() {
             </>
           )}
         </div>
-      </main>
+
+        {/* Insurance Section */}
+        <div className="mt-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Insurance Protection</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {getInsuranceQuickActions(user.role).map((action, index) => (
+              <div key={index} className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-green-500">
+                <div className="flex items-center mb-3">
+                  <span className="text-2xl mr-3">{action.icon}</span>
+                  <h3 className="text-lg font-semibold text-gray-900">{action.name}</h3>
+                </div>
+                <p className="text-gray-600 mb-4">{action.description}</p>
+                <a 
+                  href={action.href}
+                  className="inline-flex items-center bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                >
+                  Get Started
+                  <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </a>
+              </div>
+            ))}
+          </div>
+          
+          {/* Insurance Contact Info */}
+          <div className="mt-6 bg-green-50 rounded-lg p-6">
+            <div className="flex items-center mb-3">
+              <span className="text-2xl mr-3">📧</span>
+              <h3 className="text-lg font-semibold text-gray-900">Need Help with Insurance?</h3>
+            </div>
+            <p className="text-gray-600 mb-2">
+              Our insurance experts are available to help you choose the right coverage for your agricultural needs.
+            </p>
+            <p className="text-sm text-gray-500">
+              All insurance requests are sent to: <strong>gabrielnana084@gmail.com</strong>
+            </p>
+          </div>
+        </div>
+        </main>
+      </div>
     </div>
   );
 }

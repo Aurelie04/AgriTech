@@ -92,13 +92,13 @@ export default function Home() {
                 className="h-28 w-auto filter brightness-0 invert"
               />
             </div>
-            <p className="text-gray-400 mb-6">Empowering farmers with technology for a sustainable future.</p>
+            <p className="text-gray-400 mb-6">Empowering agriculture through technology. We connect farmers with tools, insights, and the global market to boost productivity and income.</p>
             <div className="flex justify-center space-x-6">
               <a href="#" className="text-gray-400 hover:text-white transition-colors">Privacy Policy</a>
               <a href="#" className="text-gray-400 hover:text-white transition-colors">Terms of Service</a>
               <a href="#" className="text-gray-400 hover:text-white transition-colors">Contact Us</a>
             </div>
-            <p className="text-gray-500 text-sm mt-6">&copy; 2024 Arimma Agriculture. All rights reserved.</p>
+            <p className="text-gray-500 text-sm mt-6">&copy; 2025 Arimma Agriculture. All rights reserved.</p>
           </div>
         </div>
       </footer>

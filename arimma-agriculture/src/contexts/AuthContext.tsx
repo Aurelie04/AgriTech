@@ -43,6 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       setLoading(true);
+      console.log('Attempting login to:', '/api/auth/login');
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -51,7 +52,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ email, password }),
       });
 
+      console.log('Response status:', response.status);
       const data = await response.json();
+      console.log('Response data:', data);
 
       if (response.ok) {
         setToken(data.token);
@@ -63,6 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: false, error: data.error };
       }
     } catch (error) {
+      console.error('Login error:', error);
       return { success: false, error: 'Network error' };
     } finally {
       setLoading(false);
