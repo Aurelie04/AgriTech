@@ -191,9 +191,32 @@ export default function DashboardPage() {
                 </button>
               </div>
               <div className="bg-white rounded-lg shadow-sm p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Weather Forecast</h3>
+                <p className="text-gray-600 mb-4">Get 7-day weather predictions for your location</p>
+                <button 
+                  onClick={() => router.push('/weather')}
+                  className="bg-cyan-600 text-white px-4 py-2 rounded-md hover:bg-cyan-700 transition-colors"
+                >
+                  View Weather
+                </button>
+              </div>
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Equipment</h3>
+                <p className="text-gray-600 mb-4">Access tractors, harvesters, and drones</p>
+                <button 
+                  onClick={() => router.push('/equipment')}
+                  className="bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-700 transition-colors"
+                >
+                  Book Equipment
+                </button>
+              </div>
+              <div className="bg-white rounded-lg shadow-sm p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Marketplace</h3>
                 <p className="text-gray-600 mb-4">Sell your products to buyers</p>
-                <button className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
+                <button 
+                  onClick={() => router.push('/marketplace')}
+                  className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                >
                   List Products
                 </button>
               </div>
