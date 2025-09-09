@@ -143,6 +143,8 @@ export default function EquipmentBookingForm({ equipment, onClose, onSuccess }: 
         specialRequirements: formData.specialRequirements
       };
 
+      console.log('Submitting equipment booking with data:', bookingData);
+
       const response = await fetch('/api/equipment/booking', {
         method: 'POST',
         headers: {
@@ -151,12 +153,16 @@ export default function EquipmentBookingForm({ equipment, onClose, onSuccess }: 
         body: JSON.stringify(bookingData),
       });
 
+      console.log('Equipment booking response status:', response.status);
+
       const result = await response.json();
+      console.log('Equipment booking response data:', result);
 
       if (result.success) {
         onSuccess(result.bookingId);
       } else {
         setError(result.error || 'Failed to submit booking request');
+        console.error('Equipment booking API error:', result.error);
       }
     } catch (err) {
       console.error('Booking submission error:', err);

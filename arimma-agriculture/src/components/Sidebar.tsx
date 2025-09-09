@@ -159,7 +159,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Footer */}
         <div className="p-4 border-t border-gray-200">
           <div className="space-y-2">
-            <button className="w-full flex items-center space-x-3 px-4 py-3 text-left rounded-lg hover:bg-gray-50 transition-colors">
+            <button 
+              onClick={() => handleNavigation('/settings')}
+              className="w-full flex items-center space-x-3 px-4 py-3 text-left rounded-lg hover:bg-gray-50 transition-colors"
+            >
               <span className="text-xl">⚙️</span>
               <span className="font-medium">Settings</span>
             </button>

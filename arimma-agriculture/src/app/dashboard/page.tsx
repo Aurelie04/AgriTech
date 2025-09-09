@@ -211,6 +211,16 @@ export default function DashboardPage() {
                 </button>
               </div>
               <div className="bg-white rounded-lg shadow-sm p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Finance</h3>
+                <p className="text-gray-600 mb-4">Access loans and working capital</p>
+                <button 
+                  onClick={() => router.push('/finance')}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Apply for Loan
+                </button>
+              </div>
+              <div className="bg-white rounded-lg shadow-sm p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Marketplace</h3>
                 <p className="text-gray-600 mb-4">Sell your products to buyers</p>
                 <button 

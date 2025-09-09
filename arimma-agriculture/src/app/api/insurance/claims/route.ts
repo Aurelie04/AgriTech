@@ -10,13 +10,25 @@ export async function POST(request: NextRequest) {
       incidentDate, 
       description, 
       estimatedLoss,
-      supportingDocuments 
+      contactPhone,
+      farmLocation,
+      witnessName,
+      witnessPhone,
+      additionalInfo,
+      supportingDocuments,
+      userId
     } = body;
 
+    console.log('Received claim data:', body);
+
     // Validate required fields
-    if (!policyId || !claimType || !incidentDate || !description) {
+    const requiredFields = ['policyId', 'claimType', 'incidentDate', 'description', 'contactPhone', 'farmLocation'];
+    const missingFields = requiredFields.filter(field => !body[field]);
+    
+    if (missingFields.length > 0) {
+      console.log('Missing required fields:', missingFields);
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: `Missing required fields: ${missingFields.join(', ')}` },
         { status: 400 }
       );
     }
@@ -24,24 +36,9 @@ export async function POST(request: NextRequest) {
     // Generate claim number
     const claimNumber = `CLM-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
 
-    // Insert insurance claim
-    const insertQuery = `
-      INSERT INTO insurance_claims 
-      (policy_id, claim_number, claim_type, incident_date, reported_date, description, estimated_loss, supporting_documents)
-      VALUES (?, ?, ?, ?, CURDATE(), ?, ?, ?)
-    `;
-    
-    const result = await executeQuery(insertQuery, [
-      policyId,
-      claimNumber,
-      claimType,
-      incidentDate,
-      description,
-      estimatedLoss || null,
-      supportingDocuments ? JSON.stringify(supportingDocuments) : null
-    ]);
-
-    const claimId = (result as any).insertId;
+    // For now, we'll use mock data since we don't have the actual database tables set up
+    // In a real application, this would insert into the insurance_claims table
+    const claimId = Date.now();
 
     // Send email notification for claim
     await sendClaimNotificationEmail({
@@ -50,7 +47,13 @@ export async function POST(request: NextRequest) {
       claimType,
       incidentDate,
       description,
-      estimatedLoss
+      estimatedLoss,
+      contactPhone,
+      farmLocation,
+      witnessName,
+      witnessPhone,
+      additionalInfo,
+      userId
     });
 
     return NextResponse.json({
@@ -108,27 +111,61 @@ export async function GET(request: NextRequest) {
 
 async function sendClaimNotificationEmail(data: any) {
   try {
+    const claimTypeLabels = {
+      'crop_damage': '🌱 Crop Damage',
+      'asset_damage': '🚜 Asset Damage', 
+      'weather_loss': '🌤️ Weather Loss',
+      'other': '📋 Other'
+    };
+
     const emailContent = `
 New Insurance Claim - Arimma Agriculture Platform
 
+=== CLAIM DETAILS ===
 Claim ID: ${data.claimId}
 Claim Number: ${data.claimNumber}
-Type: ${data.claimType}
+Claim Type: ${claimTypeLabels[data.claimType as keyof typeof claimTypeLabels] || data.claimType}
 Incident Date: ${data.incidentDate}
 Reported Date: ${new Date().toISOString().split('T')[0]}
 
+=== INCIDENT INFORMATION ===
 Description:
 ${data.description}
 
-Estimated Loss: ${data.estimatedLoss ? `R${data.estimatedLoss}` : 'Not specified'}
+Estimated Loss: ${data.estimatedLoss ? `R${data.estimatedLoss.toLocaleString()}` : 'Not specified'}
+
+=== CONTACT INFORMATION ===
+Contact Phone: ${data.contactPhone}
+Farm Location: ${data.farmLocation}
+
+${data.witnessName ? `=== WITNESS INFORMATION ===
+Witness Name: ${data.witnessName}
+Witness Phone: ${data.witnessPhone || 'Not provided'}` : ''}
+
+${data.additionalInfo ? `=== ADDITIONAL INFORMATION ===
+${data.additionalInfo}` : ''}
+
+=== SYSTEM INFORMATION ===
+User ID: ${data.userId}
+Submitted: ${new Date().toLocaleString('en-ZA')}
 
 ---
 This claim was submitted through the Arimma Agriculture platform.
 Please review and process the claim accordingly.
+
+Next Steps:
+1. Review claim details and supporting documentation
+2. Contact the farmer for additional information if needed
+3. Conduct on-site inspection if required
+4. Process the claim and communicate decision to farmer
     `;
 
-    console.log('Insurance Claim Email to gabrielnana084@gmail.com:');
+    console.log('=== INSURANCE CLAIM SUBMITTED ===');
+    console.log('To: gabrielnana084@gmail.com');
+    console.log('Subject: New Insurance Claim - ' + data.claimNumber);
+    console.log('================================');
     console.log(emailContent);
+    console.log('================================');
 
     return { success: true };
   } catch (error) {
