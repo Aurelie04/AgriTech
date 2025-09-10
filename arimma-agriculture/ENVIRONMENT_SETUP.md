@@ -36,3 +36,5 @@ After setting up the environment file:
 2. Search for a city (e.g., "Johannesburg", "Cape Town", "Durban")
 3. You should see real weather data from OpenWeatherMap API
 4. Check the browser console for API usage logs
+
+

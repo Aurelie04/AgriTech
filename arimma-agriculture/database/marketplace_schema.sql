@@ -337,3 +337,5 @@ CREATE INDEX idx_price_history_analytics ON price_history(product_type, recorded
 -- Schema creation completed
 SELECT 'Marketplace Database Schema created successfully!' as status;
 
+
+
